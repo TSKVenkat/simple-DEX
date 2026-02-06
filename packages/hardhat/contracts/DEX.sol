@@ -4,19 +4,30 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+/**
+ * @title DEX
+ * @dev A simple decentralized exchange for swapping ETH and ERC-20 tokens.
+ */
 contract DEX is Ownable {
     IERC20 public token;
 
     event Bought(uint256 amount);
     event Sold(uint256 amount);
 
+    /**
+     * @dev Constructor sets the token to be traded.
+     * @param tokenAddress The address of the ERC-20 token contract.
+     */
     constructor(address tokenAddress) Ownable(msg.sender) {
         token = IERC20(tokenAddress);
     }
 
+    /**
+     * @dev Buy tokens with ETH.
+     * The rate is 1 ETH = 1 Token (simplified).
+     */
     function buy() payable public {
         uint256 amount = msg.value; // 1 ETH = 1 Token (simplified exchange rate)
-        // In a real DEX, you'd have a price formula or oracle. Here 1 wei = 1 wei of token.
         
         uint256 dexBalance = token.balanceOf(address(this));
         require(amount > 0, "You need to send some Ether");
@@ -26,6 +37,10 @@ contract DEX is Ownable {
         emit Bought(amount);
     }
 
+    /**
+     * @dev Sell tokens for ETH.
+     * @param amount The amount of tokens to sell.
+     */
     function sell(uint256 amount) public {
         require(amount > 0, "You need to sell at least some tokens");
         uint256 allowance = token.allowance(msg.sender, address(this));
@@ -36,10 +51,18 @@ contract DEX is Ownable {
         emit Sold(amount);
     }
 
+    /**
+     * @dev Withdraw ETH liquidity by owner.
+     * @param amount Amount of ETH to withdraw.
+     */
     function withdraw(uint256 amount) public onlyOwner {
          payable(owner()).transfer(amount);
     }
     
+    /**
+     * @dev Withdraw Token liquidity by owner.
+     * @param amount Amount of tokens to withdraw.
+     */
     function withdrawToken(uint256 amount) public onlyOwner {
         token.transfer(owner(), amount);
     }
